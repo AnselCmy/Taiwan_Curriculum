@@ -47,6 +47,9 @@ class curriculum(object):
 				else:
 					time.append(day+s)
 			rst = [[ct_week_dic[i[0]],ct_dic[i[1]]] for i in time]
+		# part for handle error inputing
+		else:
+			raise ValueError("Error School Name! ")
 		self.time = rst				
 
 	def printInfo(self):
@@ -92,7 +95,7 @@ def FullTimeTable(assemble, course):
 		if not flag:
 			cnt += 1
 			thcnt.append(0)
-			ctcnt.append(1)
+			ctcnt.append(0)
 			rst = rst + timeTable 
 		# reset timetable for next for loop
 		timeTable = [[0]*16 for i in range(5)]
@@ -133,17 +136,25 @@ if __name__ == '__main__':
 	current = []
 	courseOrder = [range(len(i)) for i in course]
 	GetAssemble(0, current, courseOrder, assemble)
-	
+	#print assemble
+	#print len(assemble)
+
 	# full the table and print 
 	rst = FullTimeTable(assemble, course)
 	cnt = rst[0][0]
 	thcnt = rst[0][1]
 	ctcnt = rst[0][2]
 	timeTable = rst[1]
+	print thcnt
+	print ctcnt
+	
 	if timeTable == [[0]*16 for i in range(5)]:
 		print "no such timetable, find more curriculums!"
 	else:
 		print "%d alternative" % (cnt)
+		
+		file = open('rst.txt', 'wt')
+
 		for c in range(cnt):
 			info = '''
 No. {0}
@@ -153,9 +164,9 @@ NCTU: {2}
 			'''.format(c+1, thcnt[c],  ctcnt[c])
 			print info
 			
-			file = open('rst.txt', 'a')
+			# file = open('rst.txt', 'a')
 			file.writelines(info)
-			file.close()
+			# file.close()
 			
 			tabel = PrettyTable(["NCTU", "NTHU", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"])
 			for classes in range(16):
@@ -163,9 +174,11 @@ NCTU: {2}
 				tabel.add_row([ct[classes], th[classes]] + [ timeTable[i][classes] for i in range(c*5,(c+1)*5) ])
 			print tabel
 			tabelStr = tabel.get_string()
-			file = open('rst.txt', 'a')
-			file.writelines(tabelStr.encode('utf8'))
-			# file.
+			
+			# file = open('rst.txt', 'a')
+			file.write(tabelStr.encode('utf8'))
+			# file.close()
+		file.close()
 # l1 = [1,2]
 # l2 = [1,2,3]
 # l3 = [1,2]
