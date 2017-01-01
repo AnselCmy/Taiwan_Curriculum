@@ -47,6 +47,13 @@ class curriculum(object):
 				else:
 					time.append(day+s)
 			rst = [[ct_week_dic[i[0]],ct_dic[i[1]]] for i in time]
+		elif self.school == "NCU":
+			for s in rowTime:
+				if s.isalpha():
+					day = s
+				else:
+					time.append(day+s)
+			rst = [[cu_week_dic[i[0]],cu_dic[i[1]]] for i in time]
 		# part for handle error inputing
 		else:
 			raise ValueError("Error School Name! ")
@@ -59,18 +66,22 @@ class curriculum(object):
 		print self.school
 
 def FullTimeTable(assemble, course):
-	timeTable = [[0]*16 for i in range(5)]
+	classNum = 18
+	timeTable = [[0]*classNum for i in range(5)]
 	rst = []
 	time = []
 	flag = False
 	cnt = 0
 	ctcnt = [0]
 	thcnt = [0]
+	cucnt = [0]
 	for psb in assemble:
 		psb = zip(range(len(psb[:])), psb[:])
 		flag = False
+		# reset to 0
 		ctcnt[cnt] = 0
 		thcnt[cnt] = 0
+		cucnt[cnt] = 0
 		for i in psb:
 			thisCourse = course[i[0]][i[1]]
 			time = thisCourse.time
@@ -80,14 +91,21 @@ def FullTimeTable(assemble, course):
 					timeTable[t[0]][t[1]] = thisCourse.name
 				else:
 					flag = True
-					#timeTable = [[0]*16 for i in range(5)]
+					#timeTable = [[0]*classNum for i in range(5)]
 					break;
 			# for count the curriculum number
 			if thisCourse.school == "NTHU":
 				thcnt[cnt] += 1
 			elif thisCourse.school == "NCTU":
 				ctcnt[cnt] += 1
-				
+			elif thisCourse.school == "NCU":
+				cucnt[cnt] += 1
+			
+			# there can only no more than 2 currculua from other school
+			if ctcnt[cnt] + cucnt[cnt] > 3:
+				flag = True
+
+
 			# if time collide, break
 			if flag:
 				break;
@@ -96,26 +114,39 @@ def FullTimeTable(assemble, course):
 			cnt += 1
 			thcnt.append(0)
 			ctcnt.append(0)
+			cucnt.append(0)
 			rst = rst + timeTable 
 		# reset timetable for next for loop
-		timeTable = [[0]*16 for i in range(5)]
-	return [cnt, thcnt, ctcnt], rst
+		timeTable = [[0]*classNum for i in range(5)]
+	return [cnt, thcnt, ctcnt, cucnt], rst
 
 if __name__ == '__main__':
 	# file operation
-	file = open("curriculum.txt")
+	#file = open("curriculum.txt")
+	file = open("current.txt")
 	lines = file.readlines()
 	file.close()
 
 	# declare
-	th = [' ', ' ', '1', '2', '3', '4', 'n', '5', '6', '7', '8', '9', 'a', 'b', 'c', ' ']
-	ct = ['M', 'N', 'A', 'B', 'C', 'D', 'X', 'E', 'F', 'G', 'H', 'Y', 'I', 'J', 'K', 'L']
+	time = ['6:00~6:50', '7:00~ 7:50', 
+			'8:00~8:50', '9:00~ 9:50', '下課20分鐘', '10:10~11:00', '11:10~12:00', 
+			'12:10~13:00', 
+			'13:20~14:10', '14:20~15:10', '下課20分鐘', '15:30~16:20', '16:30~17:20', 
+			'17:30~18:20',
+			'18:30~19:20', '19:30~20:20', '20:30~21:20', '21:30~22:20']
+	th = [' ', ' ', '1', '2', ' ', '3', '4', 'n', '5', '6', ' ', '7', '8', '9', 'a', 'b', 'c', ' ']
+	ct = ['M', 'N', 'A', 'B', ' ', 'C', 'D', 'X', 'E', 'F', ' ', 'G', 'H', 'Y', 'I', 'J', 'K', 'L']
+	cu = [' ', ' ', '1', '2', ' ', '3', '4', 'Z', '5', '6', ' ',' 7', '8', '9', 'A', 'B', 'C', ' ']
 	th_week = ['M', 'T', 'W', 'R', 'F']
 	ct_week = ['1', '2', '3', '4', '5']
+	cu_week = ['M', 'T', 'W', 'R', 'F']
 	th_dic = dict(zip(th, range(len(th))))
 	ct_dic = dict(zip(ct, range(len(ct))))
+	cu_dic = dict(zip(cu, range(len(cu))))
 	th_week_dic = dict(zip(th_week, range(len(th_week))))
 	ct_week_dic = dict(zip(ct_week, range(len(ct_week))))
+	cu_week_dic = dict(zip(cu_week, range(len(cu_week))))
+	classNum = len(time)
 
 	# the number of curriculums
 	courseNum = int(lines[-1][0])+1
@@ -144,11 +175,12 @@ if __name__ == '__main__':
 	cnt = rst[0][0]
 	thcnt = rst[0][1]
 	ctcnt = rst[0][2]
+	cucnt = rst[0][3]
 	timeTable = rst[1]
-	print thcnt
-	print ctcnt
+	#print thcnt
+	#print ctcnt
 	
-	if timeTable == [[0]*16 for i in range(5)]:
+	if timeTable == [[0]*classNum for i in range(5)]:
 		print "no such timetable, find more curriculums!"
 	else:
 		print "%d alternative" % (cnt)
@@ -160,18 +192,19 @@ if __name__ == '__main__':
 No. {0}
 NTHU: {1}
 NCTU: {2}
+NCU : {3}
 			
-			'''.format(c+1, thcnt[c],  ctcnt[c])
+			'''.format(c+1, thcnt[c],  ctcnt[c], cucnt[c])
 			print info
 			
 			# file = open('rst.txt', 'a')
 			file.writelines(info)
 			# file.close()
 			
-			tabel = PrettyTable(["NCTU", "NTHU", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"])
-			for classes in range(16):
+			tabel = PrettyTable(["NCTU", "NTHU", "time", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"])
+			for classes in range(classNum):
 				tabel.padding_width = 1
-				tabel.add_row([ct[classes], th[classes]] + [ timeTable[i][classes] for i in range(c*5,(c+1)*5) ])
+				tabel.add_row([ct[classes], th[classes], time[classes]] + [ timeTable[i][classes] for i in range(c*5,(c+1)*5) ])
 			print tabel
 			tabelStr = tabel.get_string()
 			
