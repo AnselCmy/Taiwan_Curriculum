@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from prettytable import PrettyTable
+import xlwt
 
 
 def GetAssemble(courseID, current, courseOrder, assemble):
@@ -67,7 +68,7 @@ class curriculum(object):
 
 def FullTimeTable(assemble, course):
 	classNum = 18
-	timeTable = [[0]*classNum for i in range(5)]
+	timeTable = [['0']*classNum for i in range(5)]
 	rst = []
 	time = []
 	flag = False
@@ -86,12 +87,12 @@ def FullTimeTable(assemble, course):
 			thisCourse = course[i[0]][i[1]]
 			time = thisCourse.time
 			for t in time:
-				if timeTable[t[0]][t[1]] == 0:
+				if timeTable[t[0]][t[1]] == '0':
 					#timeTable[t[0]][t[1]] = thisCourse.number
 					timeTable[t[0]][t[1]] = thisCourse.name
 				else:
 					flag = True
-					#timeTable = [[0]*classNum for i in range(5)]
+					#timeTable = [['0']*classNum for i in range(5)]
 					break;
 			# for count the curriculum number
 			if thisCourse.school == "NTHU":
@@ -117,7 +118,7 @@ def FullTimeTable(assemble, course):
 			cucnt.append(0)
 			rst = rst + timeTable 
 		# reset timetable for next for loop
-		timeTable = [[0]*classNum for i in range(5)]
+		timeTable = [['0']*classNum for i in range(5)]
 	return [cnt, thcnt, ctcnt, cucnt], rst
 
 if __name__ == '__main__':
@@ -128,8 +129,8 @@ if __name__ == '__main__':
 	file.close()
 
 	# declare
-	time = ['6:00~6:50', '7:00~ 7:50', 
-			'8:00~8:50', '9:00~ 9:50', '下課20分鐘', '10:10~11:00', '11:10~12:00', 
+	time = ['6:00~6:50', '7:00~7:50', 
+			'8:00~8:50', '9:00~9:50', '下課20分鐘', '10:10~11:00', '11:10~12:00', 
 			'12:10~13:00', 
 			'13:20~14:10', '14:20~15:10', '下課20分鐘', '15:30~16:20', '16:30~17:20', 
 			'17:30~18:20',
@@ -177,15 +178,18 @@ if __name__ == '__main__':
 	ctcnt = rst[0][2]
 	cucnt = rst[0][3]
 	timeTable = rst[1]
+	#print timeTable[0][8].__class__
+	#print timeTable[0][8]
 	#print thcnt
 	#print ctcnt
 	
-	if timeTable == [[0]*classNum for i in range(5)]:
+	if timeTable == [['0']*classNum for i in range(5)]:
 		print "no such timetable, find more curriculums!"
 	else:
 		print "%d alternative" % (cnt)
-		
-		file = open('rst.txt', 'wt')
+		rst = xlwt.Workbook()
+		rstSheet = rst.add_sheet("sheet1", cell_overwrite_ok=True)
+		sheetRows = 1 + classNum + 2 
 
 		for c in range(cnt):
 			info = '''
@@ -196,22 +200,33 @@ NCU : {3}
 			
 			'''.format(c+1, thcnt[c],  ctcnt[c], cucnt[c])
 			print info
-			
-			# file = open('rst.txt', 'a')
-			file.writelines(info)
-			# file.close()
-			
+
+			rstSheet.write(c*sheetRows+0, 0, info)
+		
+			# write title
+			title = ["NCTU", "NTHU", "time", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"]
+			for i in range(len(title)):
+				rstSheet.write(c*sheetRows+1, i, title[i])
+			# write content
+			for classes in range(classNum):
+				row = [ct[classes], th[classes], time[classes]] + [ timeTable[i][classes] for i in range(c*5,(c+1)*5) ]
+				for i in range(len(row)):
+					rstSheet.write(c*sheetRows+1+classes+1, i, row[i].decode('utf-8'))
+
+			# print in terminal
 			tabel = PrettyTable(["NCTU", "NTHU", "time", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"])
 			for classes in range(classNum):
 				tabel.padding_width = 1
 				tabel.add_row([ct[classes], th[classes], time[classes]] + [ timeTable[i][classes] for i in range(c*5,(c+1)*5) ])
 			print tabel
-			tabelStr = tabel.get_string()
-			
-			# file = open('rst.txt', 'a')
-			file.write(tabelStr.encode('utf8'))
-			# file.close()
-		file.close()
+
+		for i in range(len(title)):
+			rstSheet.col(i).width = 256*20
+		for i in range(cnt+1):
+			rstSheet.row(i*sheetRows).set_style(xlwt.easyxf('font:height 720;'))
+		rst.save("rst.xls")
+
+
 # l1 = [1,2]
 # l2 = [1,2,3]
 # l3 = [1,2]
