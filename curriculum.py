@@ -22,6 +22,7 @@ class curriculum(object):
 	name = 'name'
 	time = []
 	school = 'HFUT'
+	credit = -1
 					
 	def __init__(self, line):
 		super(curriculum, self).__init__()
@@ -30,6 +31,7 @@ class curriculum(object):
 		self.number = line[0]
 		self.name = line[1]
 		self.school = line[3]
+		self.credit = int(line[4])
 		self.parseTime()
 
 	def parseTime(self):
@@ -73,9 +75,12 @@ def FullTimeTable(assemble, course):
 	time = []
 	flag = False
 	cnt = 0
-	ctcnt = [0]
 	thcnt = [0]
+	ctcnt = [0]
 	cucnt = [0]
+	thcrd = [0]
+	ctcrd = [0]
+	cucrd = [0]
 	for psb in assemble:
 		psb = zip(range(len(psb[:])), psb[:])
 		flag = False
@@ -83,6 +88,9 @@ def FullTimeTable(assemble, course):
 		ctcnt[cnt] = 0
 		thcnt[cnt] = 0
 		cucnt[cnt] = 0
+		ctcrd[cnt] = 0
+		thcrd[cnt] = 0
+		cucrd[cnt] = 0
 		for i in psb:
 			thisCourse = course[i[0]][i[1]]
 			time = thisCourse.time
@@ -97,10 +105,13 @@ def FullTimeTable(assemble, course):
 			# for count the curriculum number
 			if thisCourse.school == "NTHU":
 				thcnt[cnt] += 1
+				thcrd[cnt] += thisCourse.credit
 			elif thisCourse.school == "NCTU":
 				ctcnt[cnt] += 1
+				ctcrd[cnt] += thisCourse.credit
 			elif thisCourse.school == "NCU":
 				cucnt[cnt] += 1
+				cucrd[cnt] += thisCourse.credit
 			
 			# there can only no more than 2 currculua from other school
 			if ctcnt[cnt] + cucnt[cnt] > 3:
@@ -116,10 +127,13 @@ def FullTimeTable(assemble, course):
 			thcnt.append(0)
 			ctcnt.append(0)
 			cucnt.append(0)
+			thcrd.append(0)
+			ctcrd.append(0)
+			cucrd.append(0)
 			rst = rst + timeTable 
 		# reset timetable for next for loop
 		timeTable = [['0']*classNum for i in range(5)]
-	return [cnt, thcnt, ctcnt, cucnt], rst
+	return [cnt, thcnt, ctcnt, cucnt, thcrd, ctcrd, cucrd], rst
 
 if __name__ == '__main__':
 	# file operation
@@ -148,15 +162,17 @@ if __name__ == '__main__':
 	ct_week_dic = dict(zip(ct_week, range(len(ct_week))))
 	cu_week_dic = dict(zip(cu_week, range(len(cu_week))))
 	classNum = len(time)
+	title = ["NCTU", "NTHU", "time", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"]
 
 	# the number of curriculums
 	courseNum = int(lines[-1][0])+1
-	
+
 	# course is a list to store the curriculum object
 	course = [[] for i in range(courseNum)]
 	for i in range(len(lines)):
 		course[int(lines[i][0])].append(curriculum(lines[i]))
-	
+	#print course
+
 	# fix the number of curriculum
 	for i in range(len(course)):
 		for j in range(len(course[i])):
@@ -177,6 +193,9 @@ if __name__ == '__main__':
 	thcnt = rst[0][1]
 	ctcnt = rst[0][2]
 	cucnt = rst[0][3]
+	thcrd = rst[0][4]
+	ctcrd = rst[0][5]
+	cucrd = rst[0][6]
 	timeTable = rst[1]
 	#print timeTable[0][8].__class__
 	#print timeTable[0][8]
@@ -194,17 +213,16 @@ if __name__ == '__main__':
 		for c in range(cnt):
 			info = '''
 No. {0}
-NTHU: {1}
-NCTU: {2}
-NCU : {3}
+NTHU: {1}, credit: {4}
+NCTU: {2}, credit: {5}
+NCU : {3}, credit: {6}
 			
-			'''.format(c+1, thcnt[c],  ctcnt[c], cucnt[c])
+			'''.format(c+1, thcnt[c],  ctcnt[c], cucnt[c], thcrd[c], ctcrd[c], cucrd[c])
 			print info
 
 			rstSheet.write(c*sheetRows+0, 0, info)
 		
 			# write title
-			title = ["NCTU", "NTHU", "time", "M(1)", "T(2)", "W(3)", "R(4)", "F(5)"]
 			for i in range(len(title)):
 				rstSheet.write(c*sheetRows+1, i, title[i])
 			# write content
